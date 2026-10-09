@@ -49,6 +49,14 @@ html[lang=ru] .hero h1{font-size:clamp(96px,14vw,268px)}html[lang=ru] .contact h
 html[lang=ru] .hero h1{line-height:.95}
 html[lang=ru] .hero-bottom{margin-top:0}
 </style>
+<!-- Google Analytics 4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-Y503N2RS6R"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-Y503N2RS6R');
+</script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -100,6 +108,27 @@ localize(document.body);
 const localeObserver=new MutationObserver(records=>{for(const record of records){if(record.type==='childList')record.addedNodes.forEach(localize);else localize(record.target);}});
 if(language==='ru')localeObserver.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['aria-label','alt','title']});
 
+/* Analytics events contain only public project and interface metadata. */
+function trackEvent(name,parameters={}){
+ if(typeof window.gtag==='function') window.gtag('event',name,{site_language:language,...parameters});
+}
+trackEvent('language_view',{language});
+document.addEventListener('click',event=>{
+ const link=event.target.closest('a');
+ if(!link)return;
+ if(link.closest('.language-switch')){
+  const selected=new URL(link.href).searchParams.get('lang');
+  if(selected!==language)trackEvent('language_switch',{from_language:language,to_language:selected});
+  return;
+ }
+ const url=new URL(link.href,location.href);
+ const placement=link.closest('#case-dialog')?'case':link.closest('#contact')?'contact':'footer';
+ if(url.protocol==='mailto:')trackEvent('contact_click',{contact_method:'email',placement});
+ else if(url.hostname==='t.me')trackEvent('contact_click',{contact_method:'telegram',placement});
+ else if(link.closest('.case-product-links'))trackEvent('product_click',{project_id:CONTENT.projects[currentCase].id,link_domain:url.hostname,link_path:url.pathname});
+ else if(link.closest('.socials')&&url.hostname==='drive.google.com')trackEvent('resume_click',{placement});
+});
+
 /* INTERACTION — no external dependencies. */
 const e=value=>translate(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const reduce=matchMedia('(prefers-reduced-motion: reduce)'),fine=matchMedia('(hover: hover) and (pointer: fine)');
@@ -112,7 +141,7 @@ CONTENT.projects.forEach((p,i)=>{
 });
 const dialog=document.querySelector('#case-dialog'),imageDialog=document.querySelector('#image-dialog');
 let trigger,currentCase=0,imageTrigger;
-function renderCase(i){const p=CONTENT.projects[i];currentCase=i;document.querySelector('#case-counter').textContent=`${String(i+1).padStart(2,'0')} / ${String(CONTENT.projects.length).padStart(2,'0')}`;
+function renderCase(i){const p=CONTENT.projects[i];currentCase=i;trackEvent('case_open',{project_id:p.id,project_name:p.client});document.querySelector('#case-counter').textContent=`${String(i+1).padStart(2,'0')} / ${String(CONTENT.projects.length).padStart(2,'0')}`;
  document.querySelector('#case-body').innerHTML=`<article><span class="eyebrow muted">${e(p.tags)}</span><h2 id="case-title">${e(p.client)}</h2><p class="case-intro">${e(p.summary)}</p><div class="case-meta"><div><span class="eyebrow muted">My role</span><p>${e(p.role)}</p></div><div><span class="eyebrow muted">Designed for</span><p>${e(p.audience)}</p></div></div>${p.notes?`<p class="case-note">${e(p.notes)}</p>`:''}<div class="modal-art">${artwork(p)}</div><div class="case-columns"><div><h3>The challenge</h3><p>${e(p.problem)}</p></div><div><h3>The outcome</h3><p>${e(p.result)}</p></div></div>${p.metrics.length?`<div class="metrics">${p.metrics.map(m=>`<div><strong>${e(m[0])}</strong><span>${e(m[1])}</span></div>`).join('')}</div><p class="metrics-source">Results documented in the <a class="link" href="${e(p.source)}" target="_blank" rel="noopener noreferrer">original case study</a>.</p>`:''}<section class="case-process" aria-labelledby="case-process-title"><h3 id="case-process-title" class="case-section-title">${e(p.processHeading || "From research to delivery")}</h3>${p.process.map((step,n)=>`<div class="case-step"><span class="small-index">${String(n+1).padStart(2,'0')}</span><div><h4>${e(step.title)}</h4><p>${e(step.text)}</p></div></div>`).join('')}</section>${p.crm?.length?`<section class="case-process" aria-labelledby="crm-section-title"><h3 id="crm-section-title" class="case-section-title">The station-owner workspace</h3>${p.crm.map((item,n)=>`<div class="case-step"><span class="small-index">${String(n+1).padStart(2,'0')}</span><div><h4>${e(item.title)}</h4><p>${e(item.text)}</p></div></div>`).join('')}</section>`:""}${p.gallery.length?`<section class="case-gallery" aria-labelledby="gallery-title"><div class="gallery-head"><h3 id="gallery-title" class="case-section-title">The work, in detail</h3><span class="eyebrow muted">Select an image to enlarge</span></div>${p.gallery.map((im,n)=>`<figure><button class="gallery-image" data-image="${n}" aria-label="Enlarge ${e(im.alt)}" aria-haspopup="dialog"><img src="${im.src}" alt="${e(im.alt)}" loading="lazy" decoding="async"><span class="gallery-action" aria-hidden="true">Enlarge +</span></button><figcaption><span class="mono">${String(n+1).padStart(2,'0')}</span> ${e(im.caption)}</figcaption></figure>`).join('')}</section>`:''}${p.productLinks?.length?`<div class="case-product-links">${p.productLinks.map(link=>`<a class="link" href="${e(link.url)}" target="_blank" rel="noopener noreferrer">${e(language==='ru'?link.labelRu:link.label)} ↗</a>`).join('')}</div>`:''}${p.source?`<div class="case-source"><a class="link" href="${e(p.source)}" target="_blank" rel="noopener noreferrer">${e(p.sourceLabel || "Read the original case study")}</a>${p.sourceNote?`<p class="metrics-source">${e(p.sourceNote)}</p>`:""}</div>`:""}<div class="case-nav"><button class="case-prev" ${i===0?'disabled':''}>Previous project</button><button class="case-next" ${i===CONTENT.projects.length-1?'disabled':''}>Next project</button></div></article>`;
  dialog.scrollTop=0;dialog.querySelector('.close').focus({preventScroll:true});
  dialog.querySelector('.case-prev').addEventListener('click',()=>renderCase(currentCase-1));dialog.querySelector('.case-next').addEventListener('click',()=>renderCase(currentCase+1));
@@ -129,7 +158,7 @@ const tabs=document.querySelector('.process-tabs');CONTENT.steps.forEach((s,i)=>
 function selectStep(i){tabs.querySelectorAll('button').forEach((b,n)=>{b.setAttribute('aria-selected',String(n===i));b.tabIndex=n===i?0:-1;});const s=CONTENT.steps[i],panel=document.querySelector('#process-panel');panel.setAttribute('aria-labelledby',`step-${i}`);panel.innerHTML=`<h3>${e(s.title)}</h3><p>${e(s.text)}</p><div class="deliverables">${s.tools.split(' / ').map(e).join('<br>')}</div>`;}
 selectStep(0);tabs.querySelectorAll('button').forEach((b,i)=>{b.addEventListener('click',()=>selectStep(i));b.addEventListener('keydown',ev=>{let n;if(ev.key==='ArrowRight')n=(i+1)%CONTENT.steps.length;if(ev.key==='ArrowLeft')n=(i+CONTENT.steps.length-1)%CONTENT.steps.length;if(ev.key==='Home')n=0;if(ev.key==='End')n=CONTENT.steps.length-1;if(n!==undefined){ev.preventDefault();selectStep(n);tabs.children[n].focus();}});});
 const theme=document.querySelector('.theme');function setTheme(dark){document.documentElement.dataset.theme=dark?'dark':'light';theme.setAttribute('aria-pressed',String(dark));theme.setAttribute('aria-label',`Switch to ${dark?'light':'dark'} theme`);}let savedTheme;try{savedTheme=localStorage.getItem('portfolio-theme')}catch{}setTheme(savedTheme?savedTheme==='dark':matchMedia('(prefers-color-scheme: dark)').matches);theme.addEventListener('click',()=>{const dark=document.documentElement.dataset.theme!=='dark';setTheme(dark);try{localStorage.setItem('portfolio-theme',dark?'dark':'light')}catch{}});
-const email=document.querySelector('#email-link');email.textContent=CONTENT.email;email.href='mailto:'+CONTENT.email;document.querySelector('#copy-email').addEventListener('click',async()=>{const status=document.querySelector('#copy-status');try{await navigator.clipboard.writeText(CONTENT.email);status.textContent='Email copied to clipboard.';}catch{const selection=getSelection(),range=document.createRange();range.selectNodeContents(email);selection.removeAllRanges();selection.addRange(range);status.textContent='Email selected. Press Ctrl+C or use your device’s Copy command.';}});
+const email=document.querySelector('#email-link');email.textContent=CONTENT.email;email.href='mailto:'+CONTENT.email;document.querySelector('#copy-email').addEventListener('click',async()=>{const status=document.querySelector('#copy-status');try{await navigator.clipboard.writeText(CONTENT.email);trackEvent('contact_copy',{contact_method:'email'});status.textContent='Email copied to clipboard.';}catch{const selection=getSelection(),range=document.createRange();range.selectNodeContents(email);selection.removeAllRanges();selection.addRange(range);status.textContent='Email selected. Press Ctrl+C or use your device’s Copy command.';}});
 document.querySelectorAll('.socials a').forEach((a,i)=>a.href=Object.values(CONTENT.socials)[i]);document.querySelector('#portrait').src=CONTENT.portrait;
 function clock(){const t=document.querySelector('#local-time'),now=new Date();t.textContent=new Intl.DateTimeFormat('en-GB',{timeZone:CONTENT.timezone,hour:'2-digit',minute:'2-digit',hour12:false}).format(now);t.dateTime=now.toISOString();}clock();setInterval(clock,30000);document.querySelector('#year').textContent=new Date().getFullYear();
 if('IntersectionObserver' in window){const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('visible');observer.unobserve(entry.target);}}),{threshold:.08});document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));}else document.querySelectorAll('.reveal').forEach(el=>el.classList.add('visible'));
