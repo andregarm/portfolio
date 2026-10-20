@@ -78,6 +78,20 @@ html[lang=ru] .hero-bottom{margin-top:0}
 .game-gallery .gallery-head{grid-column:1/-1}
 .game-gallery .gallery-image img{max-height:640px;object-fit:contain}
 @media(max-width:540px){.game-cover-copy strong{font-size:30px}.game-cover-copy{gap:12px}.game-cover-copy .eyebrow{font-size:7px}.game-gallery{gap:12px}}
+
+/* Device mockups frame the published screenshots without altering game content. */
+.game-cover{grid-template-columns:36% 64%;padding:7%;gap:0;background:radial-gradient(ellipse at 70% 30%,#ffffff18,transparent 65%),var(--game-color)}
+.game-cover-copy{gap:18px}
+.game-cover-copy strong{font-size:clamp(24px,3.8vw,62px);max-width:100%}
+.game-cover-screens{position:relative;justify-content:center;align-items:center;gap:6%;height:100%;padding:2% 2% 3% 5%;perspective:1200px}
+.game-phone{position:relative;display:block;flex:0 0 43%;height:90%;aspect-ratio:9/19.5;padding:5px;background:linear-gradient(135deg,#91949b,#22252a 12%,#08090b 70%,#777b80);border:1px solid #a5a8ad70;border-radius:clamp(12px,2.3vw,34px);box-shadow:0 24px 36px #0005,0 4px 6px #0003;overflow:hidden;transform:rotate(-8deg) translateY(-3%)}
+.game-phone-2{transform:rotate(8deg) translateY(7%)}
+.game-phone-screen{display:block;width:100%;height:100%;overflow:hidden;border-radius:inherit;background:#111}
+.art .game-phone-screen img,.modal-art .game-phone-screen img{width:100%;height:100%;max-width:none;object-fit:cover;object-position:center;border-radius:0;background:#111;box-shadow:none;transform:none;margin:0}
+.game-phone-camera{position:absolute;left:34%;top:7px;width:32%;height:9px;border-radius:0 0 7px 7px;background:#090a0c;box-shadow:0 1px 1px #ffffff15}
+.game-phone-home{position:absolute;left:34%;bottom:9px;width:32%;height:3px;border-radius:3px;background:#fff9}
+.game-cover-screens img:nth-child(2){margin-top:0}
+@media(max-width:540px){.game-cover{padding:7% 6%}.game-cover-copy{gap:12px}.game-cover-copy strong{font-size:27px}.game-phone{padding:3px;border-radius:15px;box-shadow:0 12px 18px #0005}.game-phone-camera{top:4px;height:5px}.game-phone-home{bottom:6px;height:2px}}
 </style>
 <!-- Google Analytics 4 -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y503N2RS6R"></script>
@@ -164,7 +178,7 @@ const e=value=>translate(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','
 const reduce=matchMedia('(prefers-reduced-motion: reduce)'),fine=matchMedia('(hover: hover) and (pointer: fine)');
 const cursor=document.querySelector('.cursor'),preview=document.querySelector('.floating-preview');
 const projects=document.querySelector('#projects'),index=document.querySelector('#project-index');
-function artwork(p,alternate=false){if(p.category==='games'&&!alternate)return `<div class="game-cover" style="--game-color:${e(p.coverColor)}"><div class="game-cover-copy"><span class="eyebrow">${language==='ru'?'УРОВНИ / UI / UNITY':'LEVELS / UI / UNITY'}</span><strong>${e(p.client)}</strong></div><div class="game-cover-screens">${p.coverScreens.map((src,n)=>`<img src="${e(src)}" alt="${e(p.client)} — ${language==='ru'?'игровой экран':'game screen'} ${n+1}" loading="lazy" decoding="async" referrerpolicy="no-referrer">`).join('')}</div></div>`;const image=alternate&&p.gallery.length?p.gallery[0]:{src:p.cover,alt:p.coverAlt};return `<img src="${image.src}" alt="${e(image.alt)}" width="1362" height="715" loading="lazy" decoding="async">`;}
+function artwork(p,alternate=false){if(p.category==='games'&&!alternate)return `<div class="game-cover" style="--game-color:${e(p.coverColor)}"><div class="game-cover-copy"><span class="eyebrow">${language==='ru'?'УРОВНИ / UI / UNITY':'LEVELS / UI / UNITY'}</span><strong>${e(p.client)}</strong></div><div class="game-cover-screens">${p.coverScreens.map((src,n)=>`<span class="game-phone game-phone-${n+1}"><span class="game-phone-screen"><img src="${e(src)}" alt="${e(p.client)} — ${language==='ru'?'игровой экран':'game screen'} ${n+1}" loading="lazy" decoding="async" referrerpolicy="no-referrer"></span><span class="game-phone-camera" aria-hidden="true"></span><span class="game-phone-home" aria-hidden="true"></span></span>`).join('')}</div></div>`;const image=alternate&&p.gallery.length?p.gallery[0]:{src:p.cover,alt:p.coverAlt};return `<img src="${image.src}" alt="${e(image.alt)}" width="1362" height="715" loading="lazy" decoding="async">`;}
 CONTENT.projects.forEach((p,i)=>{
  projects.insertAdjacentHTML('beforeend',`<button class="project reveal" data-project="${i}" aria-label="Read ${e(p.client)} case study" aria-haspopup="dialog"><div class="art">${artwork(p)}<span class="art-open" aria-hidden="true">View case</span></div><div class="project-info"><div><h3>${e(p.client)}</h3><p class="project-description">${e(p.title)}</p><p class="project-tags">${e(p.tags)} / ${e(p.role)}</p></div><span class="project-number mono">${String(i+1).padStart(2,'0')}</span></div></button>`);
  index.insertAdjacentHTML('beforeend',`<button class="index-row" data-project="${i}" aria-label="Read ${e(p.client)} case study" aria-haspopup="dialog"><span class="mono">${String(i+1).padStart(2,'0')}</span><span>${e(p.client)}</span><span>${e(p.role)}</span><span>${e(p.tags.split(' · ')[0])}</span><span aria-hidden="true">+</span></button>`);
