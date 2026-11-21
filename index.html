@@ -163,7 +163,8 @@ body.case-view #main>:not(#case-dialog){display:none!important}
 .hardware.phone+.phone{left:53%;top:11%;transform:rotate(5deg)}
 .hardware.laptop{width:73%;height:77%;left:13.5%;top:9%;border-radius:1.6cqw;padding:.85cqw .85cqw 1.4cqw}
 .hardware.laptop:after{content:'';position:absolute;top:100%;left:-6%;width:112%;height:1.3cqw;background:linear-gradient(#b6bcc3,#7e858f);border-radius:0 0 50% 50%}
-.hardware .device-screen{display:block;height:100%;width:100%;background-repeat:no-repeat;border-radius:inherit}
+.hardware .device-screen{display:block;height:100%;width:100%;position:relative;container-type:size;overflow:hidden;border-radius:inherit}
+.device-stage .hardware .device-screen img{position:absolute;left:50%;top:0;width:var(--board-width);max-width:none;height:auto;translate:var(--board-x) var(--board-y);transform:none}
 .hardware.phone .device-screen{border-radius:2.9cqw}
 .hardware.laptop .device-screen{border-radius:.85cqw}
 .art:has(.device-stage),.modal-art:has(.device-stage){aspect-ratio:1.9!important}
@@ -256,21 +257,22 @@ const projects=document.querySelector('#projects'),index=document.querySelector(
 
 // Screen bounds are fractions of the source board, measured from its top left.
 const caseDevices = {
- bakai: ['#c6cce2','phone',[[.502,.103,.216,.835],[.746,.103,.212,.835]]],
- eltech: ['#b7d5ea','phone',[[.028,.05,.216,.90],[.518,.05,.214,.90]]],
- weway: ['#a6c7b2','phone',[[.413,.124,.253,.87],[.691,.038,.275,.952]]],
- keremet: ['#a9d6bf','phone',[[.379,.107,.292,.886],[.699,.163,.277,.83]]],
- rusal: ['#b1bfca','laptop',[[.21,.505,.736,.487]]],
- zolmi: ['#c6a3d8','laptop',[[.107,.156,.784,.84]]],
- banks: ['#a4cae6','laptop',[[.431,.07,.563,.72]]],
- eldik: ['#b8cee5','laptop',[[0,0,1,1]]],
- bdigital: ['#b0d7e3','laptop',[[0,0,1,1]]]
+ bakai: ['#c6cce2','phone',1672/941,[[.502,.103,.216,.835],[.746,.103,.212,.835]]],
+ eltech: ['#b7d5ea','phone',1616/860,[[.028,.05,.216,.90],[.518,.05,.214,.90]]],
+ weway: ['#a6c7b2','phone',1672/941,[[.413,.124,.253,.87],[.691,.038,.275,.952]]],
+ keremet: ['#a9d6bf','phone',1672/941,[[.379,.107,.292,.886],[.699,.163,.277,.83]]],
+ rusal: ['#b1bfca','laptop',1672/941,[[.21,.505,.736,.487]]],
+ zolmi: ['#c6a3d8','laptop',1362/715,[[.107,.156,.784,.84]]],
+ banks: ['#a4cae6','laptop',1672/941,[[.431,.07,.563,.72]]],
+ eldik: ['#b8cee5','laptop',1440/900,[[0,0,1,1]]],
+ bdigital: ['#b0d7e3','laptop',1440/900,[[0,0,1,1]]]
 };
 function deviceCover(p){
- const [surface,device,screens]=caseDevices[p.id];
+ const [surface,device,boardAspect,screens]=caseDevices[p.id];
  const frames=screens.map(([x,y,w,h])=>{
-  const px=w===1?0:100*x/(1-w), py=h===1?0:100*y/(1-h);
-  return `<span class="hardware ${device}"><span class="device-screen" style="background-image:url('${e(p.cover)}');background-size:${100/w}% ${100/h}%;background-position:${px}% ${py}%"></span></span>`;
+  // Scale the source uniformly until its selected region fills the screen.
+  const boardWidth = `max(${100/w}cqw, ${100*boardAspect/h}cqh)`;
+  return `<span class="hardware ${device}"><span class="device-screen" style="--board-width:${boardWidth};--board-x:${-100*(x+w/2)}%;--board-y:${-100*y}%"><img src="${e(p.cover)}" alt="" decoding="async"></span></span>`;
  }).join('');
  return `<div role="img" aria-label="${e(p.coverAlt)}" class="device-stage" style="--surface:${surface}">${frames}</div>`;
 }
